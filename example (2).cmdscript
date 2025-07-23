@@ -1,0 +1,9 @@
+# A basic CMDScript
+
+write "Hello there!"
+send %NL%
+
+write "You typed:" %1
+send %NL%
+
+einid cimidisiciriiipit

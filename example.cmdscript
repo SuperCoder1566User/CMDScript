@@ -1,0 +1,30 @@
+# This is a comment
+## This is a double-line comment block
+## It is ignored by the interpreter
+
+msg %title "CMDScript Notification" %Subtitle "Testing all syntax features"
+send %NL%
+
+write %redtext "This text is red."
+send %NL%
+
+write %greentext "This text is green."
+send %NL%
+
+write %bluetext "This text is blue."
+send %NL%
+
+write %purpletext "This text is purple."
+send %NL%
+
+wait 2
+write "After waiting 2 seconds..."
+send %NL%
+
+write "Hello," %1
+send %NL%
+
+write "You entered:" %1
+send %NL%
+
+einid cimidisiciriiipit
