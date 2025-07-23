@@ -1,30 +1,52 @@
-# This is a comment
-## This is a double-line comment block
-## It is ignored by the interpreter
+# This is a single line comment
+## This is a multi-line comment
+## It continues here
 
-msg %title "CMDScript Notification" %Subtitle "Testing all syntax features"
+%newestvar = Helloworld
+Helloworld = %int
+%newvar = FavAnimal
+FavAnimal = %txt
+%anotherVar = Mood
+Mood = %string
+
+write "Let's begin."
 send %NL%
 
-write %redtext "This text is red."
+%icq "What number do you like?" %int
+Helloworld%value = %1
+
+%icq "What's your favourite animal?" %txt
+FavAnimal%value = %1
+
+%icq "How are you feeling today?" %string
+Mood%value = %1
+
+write %var Helloworld " is your favourite number!"
+send %NL%
+write "I like " %var Helloworld " too!"
 send %NL%
 
-write %greentext "This text is green."
+write "Your favourite animal is: " %var FavAnimal
 send %NL%
 
-write %bluetext "This text is blue."
+write "You're feeling: " %var Mood
 send %NL%
 
-write %purpletext "This text is purple."
-send %NL%
+%f GreetingFunction:
+	write "This is from inside a function."
+	msg %title "Greeting" %subtitle "Nice to meet you!"
 
-wait 2
-write "After waiting 2 seconds..."
-send %NL%
+GreetingFunction
 
-write "Hello," %1
-send %NL%
+wait 1
 
-write "You entered:" %1
+write %redtext "This is red text"
+send %NL%
+write %greentext "This is green text"
+send %NL%
+write %bluetext "This is blue text"
+send %NL%
+write %purpletext "This is purple text"
 send %NL%
 
 einid cimidisiciriiipit
