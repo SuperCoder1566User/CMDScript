@@ -1,197 +1,200 @@
-import os
 import sys
 import time
+import argparse
+import re
 import ctypes
-import platform
 
-class CmdScriptError(Exception):
-    pass
+from win10toast import ToastNotifier
 
-class InputQuotationError(Exception):
-    pass
+toaster = ToastNotifier()
 
-def is_end_line(line):
-    line = line.strip()
-    return "ii" in line
+# ANSI color codes
+COLOR_CODES = {
+    "%redtext": "\033[91m",
+    "%greentext": "\033[92m",
+    "%bluetext": "\033[94m",
+    "%purpletext": "\033[95m",
+    "%normal": "\033[0m",
+}
 
-def send_windows_notification(title, subtitle):
-    if platform.system() != "Windows":
-        print(f"(Notification) {title}: {subtitle}")
-        return
+variables = {}  # Store declared variables
+functions = {}  # Store functions
 
-    MB_OK = 0x0
-    MB_ICONINFORMATION = 0x40
-    ctypes.windll.user32.MessageBoxW(0, subtitle, title, MB_OK | MB_ICONINFORMATION)
+def error(message):
+    print(f"\n\033[91mError: {message}\033[0m\n")
+    sys.exit(1)
 
-def print_colored_text(color_code, text):
-    colors = {
-        '%redtext': '\033[31m',
-        '%greentext': '\033[32m',
-        '%bluetext': '\033[34m',
-        '%purpletext': '\033[35m',
-    }
-    reset = '\033[0m'
-    color = colors.get(color_code.lower(), '')
-    print(f"{color}{text}{reset}", end='')
+def validate_variable_type(var_type, value):
+    try:
+        if var_type == "%int":
+            int(value)
+        elif var_type == "%dec":
+            float(value)
+        elif var_type in ["%txt", "%string"]:
+            str(value)
+        else:
+            raise ValueError("Unknown type")
+    except ValueError:
+        return False
+    return True
 
-def run_cmdscript(file_path, input_text):
-    with open(file_path, 'r', encoding='utf-8') as f:
-        lines = f.readlines()
+def parse_script(script_lines):
+    parsed = []
+    inside_function = False
+    current_function = None
 
-    skip_next = False
-
-    for i, line in enumerate(lines, start=1):
-        line = line.rstrip('\n')
-        if skip_next:
-            skip_next = False
+    for i, line in enumerate(script_lines):
+        line = line.strip()
+        if not line or line.startswith("#"):
+            continue
+        if line.startswith("##"):
             continue
 
-        stripped = line.strip()
-
-        if stripped.startswith('##'):
-            skip_next = True
+        if line.startswith("%f"):
+            match = re.match(r"%f (.+):", line)
+            if not match:
+                error(f"Malformed function declaration (Ln {i+1})")
+            inside_function = True
+            current_function = match.group(1).strip()
+            functions[current_function] = []
             continue
 
-        if stripped.startswith('#'):
+        if inside_function:
+            if line:
+                functions[current_function].append((i+1, line))
             continue
 
-        if not stripped:
-            continue
+        parsed.append((i + 1, line))
 
-        if is_end_line(stripped):
+    return parsed
+
+def run_script(parsed_lines, input_value):
+    global variables
+    input_value = input_value.strip()
+    
+    for line_num, line in parsed_lines:
+        if line.startswith("write"):
+            parts = line.split()
+            if len(parts) < 2:
+                error(f"Syntax error in write (Ln {line_num})")
+
+            output = ""
+            expecting_string = False
+            for part in parts[1:]:
+                if part.startswith("\""):
+                    if part.endswith("\"") and len(part) > 1:
+                        output += part[1:-1] + " "
+                        expecting_string = False
+                    else:
+                        output += part[1:] + " "
+                        expecting_string = True
+                elif part.endswith("\""):
+                    if not expecting_string:
+                        error(f"Unexpected text after quoted string in write (Ln {line_num})")
+                    output += part[:-1] + " "
+                    expecting_string = False
+                elif part in COLOR_CODES:
+                    output += COLOR_CODES[part]
+                elif part == "%1":
+                    if expecting_string:
+                        error(f"%1 isn't allowed inside quotes (Ln {line_num})")
+                    output += input_value + " "
+                elif part.startswith("%var"):
+                    var_name = parts[parts.index(part)+1] if parts.index(part)+1 < len(parts) else ""
+                    if var_name not in variables:
+                        error(f"Unknown variable '{var_name}' (Ln {line_num})")
+                    output += str(variables[var_name]['value']) + " "
+                elif expecting_string:
+                    output += part + " "
+                else:
+                    error(f"Extra text found floating without quotes (Ln {line_num})")
+
+            print(output.strip() + COLOR_CODES["%normal"])
+
+        elif line.startswith("send %NL%"):
+            print()
+
+        elif line.startswith("msg"):
+            parts = line.split()
+            title = ""
+            subtitle = ""
+            for i in range(len(parts)):
+                if parts[i] == "%title":
+                    title = input_value if parts[i+1] == "%1" else parts[i+1].strip('"')
+                if parts[i] == "%subtitle":
+                    subtitle = input_value if parts[i+1] == "%1" else parts[i+1].strip('"')
+            toaster.show_toast(title, subtitle, duration=3)
+
+        elif line.startswith("wait"):
+            parts = line.split()
+            if len(parts) == 2 and parts[1].isdigit():
+                time.sleep(int(parts[1]))
+            else:
+                error(f"Invalid wait syntax (Ln {line_num})")
+
+        elif line.startswith("%newestvar"):
+            match = re.match(r"%newestvar = (\w+)", line)
+            if not match:
+                error(f"Bad variable declaration (Ln {line_num})")
+            var = match.group(1)
+            variables[var] = {'type': None, 'value': None}
+
+        elif re.match(r"\w+ = %\w+", line):
+            varname, vartype = line.split("=")
+            varname = varname.strip()
+            vartype = vartype.strip()
+            if varname not in variables:
+                error(f"Variable '{varname}' not declared (Ln {line_num})")
+            variables[varname]['type'] = vartype
+
+        elif re.match(r"\w+%value = .+", line):
+            match = re.match(r"(\w+)%value = (.+)", line)
+            varname = match.group(1)
+            value = match.group(2).strip()
+            if varname not in variables:
+                error(f"Variable '{varname}' not declared (Ln {line_num})")
+
+            vartype = variables[varname]['type']
+            if value == "%1":
+                value = input_value
+
+            if not validate_variable_type(vartype, value):
+                error(f"Type mismatch assigning to variable '{varname}' (Ln {line_num})")
+
+            variables[varname]['value'] = value
+
+        elif line.startswith("%icq"):
+            match = re.match(r"%icq \"(.+?)\" (%\w+)", line)
+            if not match:
+                error(f"Invalid icq syntax (Ln {line_num})")
+            prompt, expected_type = match.groups()
+            user_input = input(prompt + " ")
+            if not validate_variable_type(expected_type, user_input):
+                error(f"Input type mismatch for icq (Ln {line_num})")
+            input_value = user_input
+
+        elif line.startswith("einid cimidisiciriiipit"):
+            print("\033[90m[Script End]\033[0m")
             break
 
-        if stripped == "send %NL%":
-            print()
-            continue
+        elif line in functions:
+            run_script(functions[line], input_value)
 
-        if stripped.startswith('wait '):
-            parts = stripped.split()
-            if len(parts) != 2:
-                raise CmdScriptError(f'Invalid wait command format (Ln {i})')
-            try:
-                secs = float(parts[1])
-                time.sleep(secs)
-                continue
-            except ValueError:
-                raise CmdScriptError(f'Invalid number for wait command (Ln {i})')
-
-        if stripped.startswith('msg '):
-            import re
-            pattern = r'msg\s+%title\s+"([^"]+)"\s+%Subtitle\s+"([^"]+)"'
-            m = re.match(pattern, stripped, re.IGNORECASE)
-            if not m:
-                raise CmdScriptError(f'Invalid msg syntax (Ln {i})')
-            title = m.group(1)
-            subtitle = m.group(2)
-            send_windows_notification(title, subtitle)
-            continue
-
-        if stripped.startswith('write '):
-            content = stripped[6:].strip()
-
-            color_codes = ['%redtext', '%greentext', '%bluetext', '%purpletext']
-            color_code = None
-            for code in color_codes:
-                if content.lower().startswith(code):
-                    color_code = code
-                    content = content[len(code):].strip()
-                    break
-
-            # Now expect: quoted string, optionally followed by %1 only (no extra floating text)
-            if not content.startswith('"'):
-                raise CmdScriptError(f'write statement must start with quoted string (Ln {i})')
-
-            end_quote_idx = content.find('"', 1)
-            if end_quote_idx == -1:
-                raise CmdScriptError(f'Missing closing quote in write statement (Ln {i})')
-
-            quoted_text = content[1:end_quote_idx]
-
-            # Check that quoted_text does NOT contain % (so no %1 inside quotes)
-            if '%' in quoted_text:
-                raise CmdScriptError(f'%[...] syntax is not allowed inside quotes (Ln {i})')
-
-            after_quote = content[end_quote_idx+1:].strip()
-
-            # after_quote can be empty OR exactly "%1"
-            if after_quote == "":
-                # just print quoted text
-                final_text = quoted_text
-            elif after_quote == "%1":
-                final_text = quoted_text + " " + input_text
-            else:
-                # Extra floating text detected
-                raise CmdScriptError(f'Extra text found floating without quotes (Ln {i})')
-
-            if color_code:
-                print_colored_text(color_code, final_text)
-            else:
-                print(final_text, end='')
-
-            continue
-
-        print(f"Warning: unrecognized command: {line}")
-
-def find_first_cmdscript_file():
-    files = [f for f in os.listdir('.') if f.endswith('.cmdscript')]
-    if not files:
-        print("No .cmdscript files found in current directory.")
-        return None
-    files.sort()
-    return files[0]
-
-def parse_args():
-    filename = None
-    input_text = ""
-
-    args = sys.argv[1:]
-    if not args:
-        filename = find_first_cmdscript_file()
-    else:
-        if args[0].endswith('.cmdscript'):
-            filename = args[0]
-            args = args[1:]
         else:
-            filename = find_first_cmdscript_file()
-
-    if '--input' in args:
-        idx = args.index('--input')
-        input_parts = []
-        for val in args[idx + 1:]:
-            if val.startswith('-'):
-                break
-            input_parts.append(val)
-
-        joined = " ".join(input_parts)
-        if (joined.count('"') % 2) != 0:
-            raise InputQuotationError(
-                'Input string quotes are not balanced. Did you forget to put quotes around your input?'
-            )
-        for part in input_parts:
-            if part.count('"') == 1:
-                raise InputQuotationError(
-                    f'Input argument "{part}" has unmatched quote. Did you forget to quote your input properly?'
-                )
-
-        input_text = joined.replace('"', '')
-
-    return filename, input_text
-
-def main():
-    try:
-        filename, input_text = parse_args()
-
-        if not filename:
-            print("No .cmdscript file to run.")
-            return
-
-        print(f"Running {filename} with input: {input_text}\n")
-        run_cmdscript(filename, input_text)
-    except CmdScriptError as e:
-        print(f"Error: {e}")
-    except InputQuotationError as e:
-        print(f"InputQuotationError: {e}")
+            error(f"Unknown command (Ln {line_num}): {line}")
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser(description="CMDScript Interpreter")
+    parser.add_argument("script", help="Path to the .cmdscript file")
+    parser.add_argument("--input", help="Input value to use as %1", required=True)
+    args = parser.parse_args()
+
+    try:
+        with open(args.script, encoding="utf-8") as f:
+            lines = f.readlines()
+    except FileNotFoundError:
+        error("Script file not found.")
+
+    print(f"Running {args.script} with input: {args.input}\n\n")
+    parsed_script = parse_script(lines)
+    run_script(parsed_script, args.input)
