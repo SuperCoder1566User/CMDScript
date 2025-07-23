@@ -1,9 +1,13 @@
-# A basic CMDScript
+# Simple example
 
-write "Hello there!"
+write "Welcome!"
 send %NL%
 
-write "You typed:" %1
+%icq "What's your name?" %txt
+write "Nice to meet you, " %1
 send %NL%
+
+msg %title "Greetings" %subtitle %1
+wait 1
 
 einid cimidisiciriiipit
