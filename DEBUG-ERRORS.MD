@@ -1,6 +1,6 @@
 ### DEBUG-ERRORS.MD
 
-```markdown
+
 # CMDScript Debugging & Common Errors
 
 ## Table of Contents
