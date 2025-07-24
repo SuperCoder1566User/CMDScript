@@ -1,13 +1,94 @@
-# Simple example
-
-write "Welcome!"
+write %bluetext "Welcome to the Truth and Lies Game"
 send %NL%
 
-%icq "What's your name?" %txt
-write "Nice to meet you, " %1
+write "There are three doors. Behind one is the truth. The other two lie."
+write "Each door gives you a clue. Only one tells the truth."
+
+send %NL%
+wait 2
+
+# Getting user's name
+%newestvar = PlayerName
+PlayerName = %string
+%icq "What is your name, detective?" %string
+PlayerName%value = %1
+msg %title "Welcome," %subtitle %var PlayerName
+
 send %NL%
 
-msg %title "Greetings" %subtitle %1
+# Set up the correct door (door 2 tells the truth)
+%newestvar = TruthDoor
+TruthDoor = %int
+TruthDoor%value = 2
+
+# Player's chosen door
+%newestvar = ChosenDoor
+ChosenDoor = %int
+
+# Red, Green, and Purple clues
+%f SayClues:
+	write %redtext "Door 1 says: Door 3 is the liar."
+	write %greentext "Door 2 says: I tell the truth."
+	write %purpletext "Door 3 says: Door 1 is the truth teller."
+
+SayClues
+
+send %NL%
 wait 1
+
+write "Which door do you choose? (1, 2, or 3)"
+%icq "Enter the number of the door you think tells the truth:" %int
+ChosenDoor%value = %1
+
+send %NL%
+write "Analyzing your answer..."
+wait 2
+
+# Conditional logic must go inside function
+%f CheckDoor:
+	%if ChosenDoor = %var TruthDoor
+		write %greentext "Correct! Door " %var ChosenDoor " was telling the truth."
+		msg %title "Well done," %subtitle %var PlayerName
+	%else
+		write %redtext "Wrong choice! Door " %var ChosenDoor " was not the truth teller."
+		msg %title "Game Over," %subtitle "Better luck next time."
+
+CheckDoor
+
+send %NL%
+
+# More variables
+%newestvar = FavAnimal
+FavAnimal = %txt
+%icq "What is your favorite animal?" %txt
+FavAnimal%value = %1
+
+write "Nice! I like %var FavAnimal too."
+wait 1
+send %NL%
+
+# Numbers
+%newestvar = FavNumber
+FavNumber = %int
+%icq "What's your favorite number?" %int
+FavNumber%value = %1
+
+# Number comment also inside a function
+%f ReactToNumber:
+	%if FavNumber > 20
+		write "That’s a pretty big number!"
+	%else
+		write "That’s a chill number."
+
+ReactToNumber
+
+send %NL%
+
+# Goodbye
+%f Goodbye:
+	write %purpletext "Thanks for playing, %var PlayerName!"
+	msg %title "Bye," %subtitle "See you again!"
+
+Goodbye
 
 einid cimidisiciriiipit
