@@ -1,52 +1,87 @@
-# This is a single line comment
-## This is a multi-line comment
-## It continues here
-
-%newestvar = Helloworld
-Helloworld = %int
-%newvar = FavAnimal
-FavAnimal = %txt
-%anotherVar = Mood
-Mood = %string
-
-write "Let's begin."
+write %bluetext "Welcome to the Ultimate CMDScript Demo!"
 send %NL%
 
-%icq "What number do you like?" %int
-Helloworld%value = %1
+# Variable declarations and types
+%newestvar = PlayerName
+PlayerName = %string
 
-%icq "What's your favourite animal?" %txt
-FavAnimal%value = %1
+%newestvar = Age
+Age = %int
 
-%icq "How are you feeling today?" %string
-Mood%value = %1
+%newestvar = Score
+Score = %dec
 
-write %var Helloworld " is your favourite number!"
+%newestvar = brr
+brr = %txt
+brr%value = "Well nah"
+
+# Input from user
+%icq "What is your name?" %string
+PlayerName%value = %1
+
+%icq "How old are you?" %int
+Age%value = %1
+
+write "Hello, " %var PlayerName "! You are " %var Age " years old."
+
 send %NL%
-write "I like " %var Helloworld " too!"
+
+# Assign a decimal score
+Score%value = 7.5
+
+write "Your starting score is " %var Score
+
 send %NL%
 
-write "Your favourite animal is: " %var FavAnimal
+# Function with nested conditionals and colors
+%f CheckScore:
+    %if Score >= 10
+        write %greentext "Amazing! Your score is 10 or more."
+        msg %title "Congrats," %subtitle %var PlayerName
+    %else
+        %if Score >= 5
+            write %purpletext "Good job! Your score is at least 5."
+        %else
+            write %redtext "You need to work harder. Score less than 5."
+
+CheckScore
+
 send %NL%
 
-write "You're feeling: " %var Mood
+# Another example with nested %if inside main script
+
+%newestvar = SecretCode
+SecretCode = %string
+
+%icq "Enter the secret code:" %string
+SecretCode%value = %1
+
+%if SecretCode = "OpenSesame"
+    write %greentext "Access granted."
+    %if Age > 18
+        write "You are old enough to proceed."
+    %else
+        write "You must be 18 or older to proceed."
+%else
+    write %redtext "Access denied. Wrong secret code."
+    
 send %NL%
 
-%f GreetingFunction:
-	write "This is from inside a function."
-	msg %title "Greeting" %subtitle "Nice to meet you!"
+# Waiting example
+write "Waiting for 2 seconds..."
+wait 2
+write "Done waiting!"
 
-GreetingFunction
+send %NL%
 
-wait 1
+# Goodbye function
+%f Goodbye:
+    write %purpletext "Thanks for trying the demo, %var PlayerName!"
+    msg %title "Goodbye," %subtitle "See you soon!"
 
-write %redtext "This is red text"
-send %NL%
-write %greentext "This is green text"
-send %NL%
-write %bluetext "This is blue text"
-send %NL%
-write %purpletext "This is purple text"
-send %NL%
+Goodbye
+
+msg %title "Script Finished" %subtitle "Well nah"
+wait 5
 
 einid cimidisiciriiipit
