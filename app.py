@@ -199,7 +199,12 @@ def resolve_value(token, input_val, line_num):
                     if op2_num == 0: error("Division by zero", line_num)
                     return str(op1_num / op2_num)
             except ValueError:
-                error(f"Cannot perform arithmetic on non-numeric values: '{op1_str}' and '{op2_str}'", line_num)
+                # MODIFICATION START: Handle string concatenation for '+'
+                if op == "+":
+                    return str(op1_val) + str(op2_val)
+                else:
+                    error(f"Cannot perform arithmetic on non-numeric values: '{op1_str}' and '{op2_str}'", line_num)
+                # MODIFICATION END
             
             return token # Should not be reached for valid expressions.
 
