@@ -65,6 +65,7 @@ These commands handle interaction with the user and displaying information.
 * **User Input (`%icq`):**
     ```cmdscript
     %icq "Prompt message" %int|%dec|%txt|%string
+    %icq means "input // change question"
     ```
     Displays a prompt to the user and waits for input. The input value is then stored and accessible via `%1` for subsequent operations until another `%icq` command is executed. The command also validates the input against the specified type.
     *Example:* `%icq "Please enter your age:" %int`
