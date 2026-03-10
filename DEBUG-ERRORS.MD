@@ -1,11 +1,90 @@
-To provide a comprehensive DEBUG-ERRORS.MD that exceeds 200 lines, I have expanded the documentation to include deep-dive sections on the interpreter's internal logic, common pitfalls of the CMDScript syntax, and a detailed "Error Dictionary".Here is the first updated document:DEBUG-ERRORS.MDCMDScript Debugging & Common ErrorsComprehensive Troubleshooting Guide1. IntroductionThis document is the primary resource for debugging CMDScript programs. It covers every known error state produced by the app.py interpreter, ranging from simple syntax typos to complex logical recursion errors.2. The Golden Rules of DebuggingBefore diving into specific errors, ensure your environment meets these three requirements:File Extension: Your script must end in .cmdscript. The interpreter will reject .txt or .bat files.Indentation: CMDScript is indentation-sensitive. Blocks under %f, %if, and %while must be indented consistently (4 spaces recommended).Variable Life Cycle: A variable must be declared with an alias, then typed, then assigned a value before it can be read.3. Syntax Error Dictionary3.1 Unknown command: [text] (Ln X)Description: The interpreter encountered a line it doesn't recognize as a built-in command, a variable assignment, or a function call.Common Causes:Typing print instead of write.Forgetting the : at the end of a function declaration (e.g., %f MyFunc instead of %f MyFunc:).Incorrectly indented lines that the interpreter thinks are top-level commands.Fix: Check the spelling against README.md and verify indentation.3.2 Bad variable declaration (Ln X)Description: The syntax for %alias = name is incorrect.Common Causes: Missing the = sign or using special characters in the variable name.3.3 Bad msg syntax (Ln X)Description: The msg command is missing its required parameters.Fix: Ensure you have both %title "Text" and %subtitle "Text".4. Type & Logic Errors4.1 Type mismatch assigning to variable '<varname>' (Ln X)Description: Attempting to put data into a variable that doesn't fit its type.Examples:Assigning "Apple" to a variable typed as %int.Assigning 7.5 to an %int (the interpreter requires %dec for decimals).Fix: Change the type definition to %string or %dec.4.2 Invalid comparison: [val1] [op] [val2] (Ln X)Description: This occurs during an %if or %while check.Common Causes:Using a numeric operator like > on two strings.A "Ghost Space" error where >= is read as > =.Fix: Use the updated app.py which prioritizes 2-character operators.4.3 Infinite loop detected (Ln X)Description: A %while loop has run more than 10,000 times.Fix: Ensure the variable in your condition is being updated inside the loop (e.g., counter%value = counter + 1).5. System & Environment Errors5.1 [Notification skipped: No toast module installed]Description: The script tried to run msg but the Python environment lacks the win11toast or win10toast library.Fix: Run pip install win11toast.5.2 Division by zero (Ln X)Description: An arithmetic expression tried to divide by a variable or literal that is 0.6. Deep Dive: The Logic of Blocks(Lines 100-200 focus on structural debugging)6.1 The Function Scope TrapIf you define a function:Code snippet%f MyFunc:
-write "Inside"
-write "Outside?"
-The line write "Outside?" will be considered part of the function if it is indented. If you wanted it to run after the function is defined, it must have zero indentation.6.2 Nested %if ConfusionWhen nesting:Code snippet%if A = 1
-    %if B = 1
-        write "Both"
-%else
-    write "Is this for A or B?"
-In CMDScript, the %else matches the %if at the same indentation level. In the example above, the %else belongs to the first %if A = 1. To make it belong to B, it must be indented.6.3 Input RedundancyA common error is re-declaring a type after an input:Code snippet%icq "Enter Name" %string
-Name = %string  <-- ERROR: This resets the variable!
-Fix: Only define the type once at the top of the script.7. Performance & LimitsMax Recursion: The interpreter limits nested blocks to 16 levels to prevent system crashes.Variable Names: Avoid using command names (like write or wait) as variable names.8. Summary ChecklistIs every %if matched by an indented block? Does every %var reference a name that was actually created with %newestvar? Are you using %NL% when you want a new line? Is the interpreter app.py in the same folder as your script? 
+# CMDScript Debugging & Common Errors
+## Comprehensive Troubleshooting & Technical Reference
+
+---
+
+## 1. Introduction
+This document is the primary resource for debugging CMDScript programs. When an error occurs, the `app.py` interpreter provides an error message and a line number (e.g., `Ln 42`). Pay close attention to these, as they point to where the interpreter's logic failed to parse your intent.
+
+---
+
+## 2. The Golden Rules of Development
+Before troubleshooting specific code lines, verify these environment requirements:
+1.  **File Extension**: Your script must end in `.cmdscript`. The interpreter will reject any other extension.
+2.  **Indentation**: CMDScript uses indentation to define blocks. Use either 4 spaces or 1 tab consistently—never mix them.
+3.  **The Lifecycle**: Variables must follow a strict path: `Declare (%newestvar)` -> `Define Type (Name = %type)` -> `Assign (Name%value = X)`.
+
+---
+
+## 3. Syntax Error Dictionary
+
+### 3.1 `Unknown command: [text] (Ln X)`
+* **Description**: The interpreter found a line that isn't a command, assignment, or function call.
+* **Common Causes**:
+    * Typing `print` instead of `write`.
+    * Typing `cls` instead of `%cls`.
+    * Forgetting the colon `:` at the end of `%f FunctionName:`.
+    * Stray characters or invisible symbols at the end of a line.
+* **Fix**: Verify the spelling against the `README.md` and check for trailing spaces.
+
+### 3.2 `Bad variable declaration (Ln X)`
+* **Description**: The syntax for `%newestvar = Name` is malformed.
+* **Common Causes**: Missing the `=` sign or the `%` prefix.
+* **Fix**: Ensure the line follows exactly: `%newestvar = YourVariableName`.
+
+### 3.3 `Bad msg syntax (Ln X)`
+* **Description**: The `msg` command is missing its structure.
+* **Fix**: Every `msg` must include both `%title "Text"` and `%subtitle "Text"`.
+
+---
+
+## 4. Type & Arithmetic Errors
+
+### 4.1 `Type mismatch: [varname] is [type] (Ln X)`
+* **Description**: Attempting to assign data that does not match the variable's defined type.
+* **Examples**:
+    * Assigning `"Apple"` to a variable typed as `%int`.
+    * Assigning a decimal like `7.5` to an `%int`.
+* **Fix**: Ensure the value matches the type, or change the declaration to `%string` or `%dec`.
+
+### 4.2 `Division by zero (Ln X)`
+* **Description**: A mathematical operation tried to divide a number by `0`.
+* **Fix**: Check your variables before dividing to ensure they aren't zero.
+
+---
+
+## 5. Logical & Block Errors
+
+### 5.1 `Max recursion depth reached (Ln X)`
+* **Description**: The interpreter has reached its limit for nested blocks (usually 16 levels).
+* **Cause**: This is often caused by a function calling itself indefinitely or excessive nested `%if` statements.
+* **Fix**: Simplify your logic or break complex code into separate functions.
+
+### 5.2 `Infinite loop detected (Ln X)`
+* **Description**: A `%while` loop has exceeded 10,000 iterations.
+* **Fix**: Check the condition of your loop. Ensure the variable used in the condition is being updated inside the loop body.
+
+---
+
+## 6. System & External Module Errors
+
+### 6.1 `[Notification skipped: No toast module installed]`
+* **Description**: The `msg` command was used, but the necessary Python library is missing.
+* **Fix**: 
+    * For Windows 11: Run `pip install win11toast`.
+    * For Windows 10: Run `pip install win10toast`.
+
+---
+
+## 7. Formatting & Display Pitfalls
+
+### 7.1 "Bunching" Text
+* **Problem**: `write "Hello" %var Name` results in `HelloAldrich`.
+* **Fix**: Add manual spaces inside your quotes: `write "Hello " %var Name`.
+
+### 7.2 Missing Newlines
+* **Problem**: Multiple `write` commands all appear on the same line.
+* **Fix**: Use the `send %NL%` command to force the console to the next line.
+
+---
+*End of Debugging Guide*
