@@ -1,3 +1,5 @@
+%cls
+# Welcome Message
 write %bluetext "Welcome to the Ultimate CMDScript Demo!"
 send %NL%
 
@@ -11,49 +13,46 @@ Age = %int
 %newestvar = Score
 Score = %dec
 
+%newestvar = SecretCode
+SecretCode = %string
+
+# Initializing a variable
 %newestvar = brr
 brr = %txt
 brr%value = "Well nah"
 
 # Input from user
-%icq "What is your name?" %string
+%icq "What is your name?"
 PlayerName%value = %1
 
-%icq "How old are you?" %int
+%icq "How old are you?"
 Age%value = %1
 
 write "Hello, " %var PlayerName "! You are " %var Age " years old."
-
 send %NL%
 
 # Assign a decimal score
 Score%value = 7.5
-
 write "Your starting score is " %var Score
-
 send %NL%
 
 # Function with nested conditionals and colors
 %f CheckScore:
     %if Score >= 10
         write %greentext "Amazing! Your score is 10 or more."
-        msg %title "Congrats," %subtitle %var PlayerName
+        msg %title "Congrats," %subtitle PlayerName
     %else
         %if Score >= 5
             write %purpletext "Good job! Your score is at least 5."
         %else
             write %redtext "You need to work harder. Score less than 5."
 
+# Call the function
 CheckScore
-
 send %NL%
 
-# Another example with nested %if inside main script
-
-%newestvar = SecretCode
-SecretCode = %string
-
-%icq "Enter the secret code:" %string
+# Logic for Secret Code
+%icq "Enter the secret code:"
 SecretCode%value = %1
 
 %if SecretCode = "OpenSesame"
@@ -64,24 +63,25 @@ SecretCode%value = %1
         write "You must be 18 or older to proceed."
 %else
     write %redtext "Access denied. Wrong secret code."
-    
+
 send %NL%
 
 # Waiting example
 write "Waiting for 2 seconds..."
 wait 2
 write "Done waiting!"
-
 send %NL%
 
 # Goodbye function
 %f Goodbye:
-    write %purpletext "Thanks for trying the demo, %var PlayerName!"
+    write %purpletext "Thanks for trying the demo, " %var PlayerName "!"
     msg %title "Goodbye," %subtitle "See you soon!"
 
+# Execute Goodbye
 Goodbye
 
 msg %title "Script Finished" %subtitle "Well nah"
 wait 5
 
+# Exit command
 einid cimidisiciriiipit
