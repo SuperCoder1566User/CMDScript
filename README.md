@@ -66,3 +66,56 @@ Define reusable code blocks. [cite_start]All code inside the function must be in
 
 # Call the function by its name
 SayGoodbye
+
+## 3.2 Conditionals (`%if / %else`)
+
+Supports numeric and string comparisons.
+
+**Operators:**
+- `==`
+- `!=` (not equal)
+- `>`
+- `<`
+- `>=`
+- `<=`
+- `~` (contains)
+- `~=` (case-insensitive contains)
+
+### Code snippet
+
+```
+%if Score >= 10
+    write "You Win!"
+%else
+    write "Try Again!"
+```
+
+---
+
+## 4. How to Run
+
+1. **Requirement:** Ensure Python 3.x is installed.
+
+2. **Dependencies:**  
+   For notifications, run:
+   ```bash
+   pip install win11toast
+   ```
+
+3. **Execution:** Run your script via the terminal:
+
+   ```bash
+   python app.py your_script.cmdscript
+   ```
+
+4. **Optional Input:** Provide initial text accessible as `%1`:
+
+   ```bash
+   python app.py your_script.cmdscript --input "Initial text"
+   ```
+
+---
+
+*Generated for CMDScript Version 1.2*
+
+> Now that the documentation is complete, are you planning to add any new features?
