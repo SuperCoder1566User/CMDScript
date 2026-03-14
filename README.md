@@ -14,76 +14,106 @@ CMDScript is a lightweight, custom scripting language interpreter built in Pytho
 CMDScript uses a three-step process for memory management to ensure type safety.
 
 **1. Declaration**: Use `%newestvar` to create a name.
+
 ```cmdscript
 %newestvar = Score
 ```
 
-2. Typing: Define the data type.
+**2. Typing**: Define the data type.
 
-%int – Whole numbers.
+- `%int` – Whole numbers  
+- `%dec` – Decimal numbers  
+- `%string` / `%txt` – Text data  
 
-%dec – Decimal numbers.
-
-%string / %txt – Text data.
-
+```cmdscript
 Score = %int
+```
 
-3. Assignment & Arithmetic: Use %value to store data. You can now perform math directly during assignment.
+**3. Assignment & Arithmetic**: Use `%value` to store data. You can perform math directly during assignment.
 
+```cmdscript
 # Basic assignment
 Score%value = 10
 
 # Arithmetic assignment (Addition, Subtraction, Multiplication, Division)
 Score%value = Score + 5
-2.2 Input & Output
+```
 
-User Input (%icq) – Displays a prompt and stores the result in the %1 buffer.
+---
 
+### 2.2 Input & Output
+
+**User Input (`%icq`)** – Displays a prompt and stores the result in the `%1` buffer.
+
+```cmdscript
 %icq "Enter your name:" %string
 PlayerName%value = %1
+```
 
-Console Output (write) – Displays text or variables.
+**Console Output (`write`)** – Displays text or variables.
 
+```cmdscript
 write %bluetext "Current Score: " %var Score
+```
 
-Newlines – Use send %NL% to move to the next line.
+**Newlines** – Use `send %NL%` to move to the next line.
 
-2.3 System Commands
+---
 
-Clear Screen (%cls) – Instantly clears the terminal window.
+### 2.3 System Commands
 
-Wait (wait) – Pauses execution for a specified number of seconds.
+**Clear Screen (`%cls`)** – Instantly clears the terminal window.
 
-Notifications (msg) – Sends a desktop toast notification. Requires win11toast.
+**Wait (`wait`)** – Pauses execution for a specified number of seconds.
 
-3. Control Flow & Structure
-3.1 File Requirements
+**Notifications (`msg`)** – Sends a desktop toast notification. Requires `win11toast`.
 
-Scripts must adhere to the following structural rules:
+---
 
-Extensions: Files must end in .cmdscript or .cscript.
+## 3. Control Flow & Structure
 
-Mandatory Footer: Every script must end with either end cmdscript or end script.
+### 3.1 File Requirements
 
-3.2 Functions (%f)
+Scripts must follow these structural rules:
+
+1. **Extensions**: Files must end in `.cmdscript` or `.cscript`.
+2. **Mandatory Footer**: Every script must end with either `end cmdscript` or `end script`.
+
+---
+
+### 3.2 Functions (`%f`)
 
 Define reusable code blocks using indentation.
 
+```cmdscript
 %f Victory:
     write "You reached the end!"
     send %NL%
-3.3 Conditionals (%if / %else)
+```
+
+---
+
+### 3.3 Conditionals (`%if / %else`)
 
 Supports numeric and string comparisons.
 
+```cmdscript
 %if Score >= 15
     Victory
 %else
     write "Keep playing..."
-4. How to Run
+```
 
-Execution:
+---
 
+## 4. How to Run
+
+**Execution**
+
+```bash
 python app.py your_script.cscript
+```
 
-Generated for CMDScript Version 1.3
+---
+
+*Generated for CMDScript Version 1.3*
