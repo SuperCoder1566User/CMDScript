@@ -16,6 +16,7 @@ CMDScript uses a three-step process for memory management to ensure type safety.
 **1. Declaration**: Use `%newestvar` to create a name.
 ```cmdscript
 %newestvar = Score
+```
 
 2. Typing: Define the data type.
 
