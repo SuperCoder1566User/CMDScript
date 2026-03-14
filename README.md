@@ -13,138 +13,76 @@ CMDScript is a lightweight, custom scripting language interpreter built in Pytho
 ### 2.1 Variables & Data Types
 CMDScript uses a three-step process for memory management to ensure type safety.
 
-**Declaration**: Use `%newestvar` to create a new variable name.
-
+**1. Declaration**: Use `%newestvar` to create a name.
 ```cmdscript
-%newestvar = PlayerName
-```
+%newestvar = Score
 
-**Typing**: You must define a type before assigning values.
+2. Typing: Define the data type.
 
-- `%int` – Whole numbers
-- `%dec` – Decimal / floating‑point numbers
-- `%string` / `%txt` – Text data
+%int – Whole numbers.
 
-```cmdscript
-PlayerName = %string
-```
+%dec – Decimal numbers.
 
-**Assignment**: Use the `%value` suffix to store data.
+%string / %txt – Text data.
 
-```cmdscript
-PlayerName%value = "Aldrich"
-```
+Score = %int
 
----
+3. Assignment & Arithmetic: Use %value to store data. You can now perform math directly during assignment.
 
-### 2.2 Input & Output
+# Basic assignment
+Score%value = 10
 
-**User Input (`%icq`)** – Displays a prompt and stores the result in the `%1` buffer.
+# Arithmetic assignment (Addition, Subtraction, Multiplication, Division)
+Score%value = Score + 5
+2.2 Input & Output
 
-```cmdscript
-%icq "Enter your age:" %int
-Age%value = %1
-```
+User Input (%icq) – Displays a prompt and stores the result in the %1 buffer.
 
-**Console Output (`write`)** – Displays text or variables. Use `%var Name` to inject variable values.
+%icq "Enter your name:" %string
+PlayerName%value = %1
 
-```cmdscript
-write %bluetext "Hello, " %var PlayerName
-```
+Console Output (write) – Displays text or variables.
 
-**Newlines** – The `write` command does not automatically end in a newline. Use `send %NL%` to move to the next line.
+write %bluetext "Current Score: " %var Score
 
----
+Newlines – Use send %NL% to move to the next line.
 
-### 2.3 System Commands
+2.3 System Commands
 
-**Clear Screen (`%cls`)** – Instantly clears the terminal window.
+Clear Screen (%cls) – Instantly clears the terminal window.
 
-**Wait (`wait`)** – Pauses execution for a specified number of seconds.
+Wait (wait) – Pauses execution for a specified number of seconds.
 
-```cmdscript
-wait 2.5
-```
+Notifications (msg) – Sends a desktop toast notification. Requires win11toast.
 
-**Notifications (`msg`)** – Sends a desktop toast notification.
+3. Control Flow & Structure
+3.1 File Requirements
 
-```cmdscript
-msg %title "Alert" %subtitle "Process Complete"
-```
+Scripts must adhere to the following structural rules:
 
----
+Extensions: Files must end in .cmdscript or .cscript.
 
-## 3. Control Flow (Block Logic)
+Mandatory Footer: Every script must end with either end cmdscript or end script.
 
-**Important:** CMDScript relies on indentation to define the scope of functions, loops, and conditionals.
+3.2 Functions (%f)
 
-### 3.1 Functions (`%f`)
+Define reusable code blocks using indentation.
 
-Define reusable code blocks. All code inside the function must be indented.
-
-```cmdscript
-%f SayGoodbye:
-    write "Goodbye!"
+%f Victory:
+    write "You reached the end!"
     send %NL%
-```
-
-Call the function by its name:
-
-```cmdscript
-SayGoodbye
-```
-
----
-
-### 3.2 Conditionals (`%if / %else`)
+3.3 Conditionals (%if / %else)
 
 Supports numeric and string comparisons.
 
-**Operators**
-
-- `==`
-- `!=` (not equal)
-- `>`
-- `<`
-- `>=`
-- `<=`
-- `~` (contains)
-- `~=` (case‑insensitive contains)
-
-**Example**
-
-```cmdscript
-%if Score >= 10
-    write "You Win!"
+%if Score >= 15
+    Victory
 %else
-    write "Try Again!"
-```
+    write "Keep playing..."
+4. How to Run
 
----
+Execution:
 
-## 4. How to Run
+python app.py your_script.cscript
 
-**Requirement:** Ensure Python 3.x is installed.
-
-**Dependencies:**  
-For notifications run:
-
-```bash
-pip install win11toast
-```
-
-**Execution:** Run your script via the terminal.
-
-```bash
-python app.py your_script.cmdscript
-```
-
-**Optional Input:** Provide initial text accessible as `%1`.
-
-```bash
-python app.py your_script.cmdscript --input "Initial text"
-```
-
----
-
-*Generated for CMDScript Version 1.2*
+Generated for CMDScript Version 1.3
